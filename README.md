@@ -69,3 +69,51 @@ When cloning this repository on a new machine or switching branches, fetch the m
 git pull
 dvc pull
 ```
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+## 🔄 Data Versioning & Conflict Resolution (DVC Part 2)
+
+### 1. Tracking Folder Modifications (e.g., Deleting a File)
+DVC tracks directory contents seamlessly using unique MD5 hash pointers. If you delete a tracked asset (like a raw PDF file) from your local data directories:
+
+```powershell
+# 1. Physically delete or alter the file
+Remove-Item .\data\document2.pdf
+
+# 2. Check changes (Git will show nothing; DVC will spot the modification)
+dvc status
+
+# 3. Re-index the directory state with DVC
+dvc add data/
+
+# 4. Commit the newly updated data.dvc hash to Git
+git add data.dvc
+git commit -m "Remove document2.pdf from raw training data"
+```
+
+### 2. Time Travel: Restoring Deleted Data
+Because DVC saves full snapshots of folder histories tied to Git commits, you can instantly recover a deleted file by checking out an older Git pointer:
+
+```powershell
+# 1. Roll back the lightweight data.dvc pointer file to the previous commit
+git checkout HEAD~1 data.dvc
+
+# 2. Force DVC to reconstruct the physical files to match that old pointer
+dvc checkout
+```
+
+### 3. Handling Push Rejections (`fetch first` Error)
+If your `git push` fails because GitHub contains remote changes (e.g., readme edits or commits made directly on the web browser) that are missing locally, use this resolution loop:
+
+```powershell
+# 1. Fetch and merge the missing upstream commits into your local workspace
+git pull origin feature/dvc-setup
+
+# 2. Resolve any manual merge conflicts if prompted by your IDE, then:
+git push origin feature/dvc-setup
+
+# 3. Ensure your actual heavy asset binaries are synced alongside the new commits
+dvc push
+```
+

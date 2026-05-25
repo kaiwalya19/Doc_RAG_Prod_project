@@ -8,3 +8,5 @@ pypdf
 langchain_huggingface
 streamlit
 watchdog
+pywin32==311
+dvc
